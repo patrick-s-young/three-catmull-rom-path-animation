@@ -1,7 +1,7 @@
 {
-  "name": "three-modal-animation",
-  "version": "1.0.7",
-  "description": "Three.js system for FBX model animation and interaction.",
+  "name": "three-catmull-rom-path-animation",
+  "version": "1.0.0",
+  "description": "Three.js demo using a Catmull-Rom path to translate a treadmill animation to a given target.",
   "private": true,
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",

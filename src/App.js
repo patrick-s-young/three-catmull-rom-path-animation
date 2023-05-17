@@ -7,7 +7,7 @@ import { Lights } from './lights/Lights';
 // GLTF
 import { AnimatedModel } from './models/AnimatedModel';
 // Mesh
-import { Floor } from './models/Floor';
+import { Grid } from './models/Grid';
 // Renderer
 import { Renderer } from './renderer/Renderer';
 // Character & Animation configs
@@ -30,7 +30,7 @@ export const App = () => {
   const cat = AnimatedModel(CONFIGS.CHARACTER, CONFIGS.ANIMATION, onAnimatedModelInit);
   scene.add(cat.mesh);
   // MESH
-  const floor = Floor();
+  const floor = Grid();
   scene.add(floor.mesh);
   // RENDERER
   const renderer = Renderer();
