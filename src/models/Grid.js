@@ -4,6 +4,7 @@ export function Grid() {
   const material = new THREE.LineBasicMaterial({
     color: 0x00ff00
   });
+
   
   const lineWidth = 18;
   const lineSegments = 18;
@@ -20,9 +21,18 @@ export function Grid() {
   
   const geometry = new THREE.BufferGeometry().setFromPoints( points );
   
-  const mesh = new THREE.LineSegments( geometry, material );
+  const _gridMesh = new THREE.LineSegments( geometry, material );
+  _gridMesh.rotateX(-Math.PI / 2);
+
+  // Invisible raycast target
+  const _parentMesh = new THREE.Mesh( new THREE.PlaneGeometry( lineWidth, lineSegments ));
+  _parentMesh.material.transparent = true;
+  _parentMesh.material.opacity = 0;
+  _parentMesh.rotateX(-Math.PI / 2);
+  _parentMesh.name = 'floor';
+  _parentMesh.add(_gridMesh);
   
   return {
-    get mesh() { return mesh }
+    get mesh() { return _parentMesh }
   }
 }
