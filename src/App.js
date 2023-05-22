@@ -7,7 +7,6 @@ import { Lights } from './lights/Lights';
 // Models
 import { AnimatedModel } from './models/AnimatedModel';
 import { Grid } from './models/Grid';
-import { TargetMarker } from './models/TargetMarker';
 // Animation
 import { PathToTarget } from './animation/PathToTarget';
 // Renderer
@@ -34,13 +33,10 @@ export const App = () => {
   // MESH
   const floor = Grid();
   scene.add(floor.mesh);
-  const targetMarker = TargetMarker();
-  scene.add(targetMarker.mesh);
   // PATH TO TARGET
   const pathToTarget = PathToTarget({
     meshToIntersect: floor.mesh,
     meshToMove: cat.mesh,
-    meshTargetMarker: targetMarker.mesh,
     scene: scene.self,
     camera: camera.self
   });

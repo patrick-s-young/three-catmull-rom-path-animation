@@ -1,5 +1,9 @@
 // Three
 import * as THREE from 'three';
+// listeners
+import { ClickToMeshPoint } from '../listeners/ClickMeshPoint';
+// models
+import { TargetMarker } from '../models/TargetMarker';
 
 
 //////////
@@ -7,52 +11,68 @@ import * as THREE from 'three';
 export const PathToTarget = ({
   meshToIntersect,
   meshToMove,
-  meshTargetMarker,
   scene,
   camera
 }) => {
-  const _raycaster = new THREE.Raycaster();
-	const _pointer = new THREE.Vector2();
-  let _isEnabled;
-  let _intersected;
-  setEnabled(true);
+  let pathMarkers = [];
+  const clickToMeshPoint = ClickToMeshPoint({
+    mesh: meshToIntersect,
+    scene,
+    camera,
+    onClickMeshCallback: plotPath
+  });
 
-  function setEnabled (isEnabled) {
-    _isEnabled = isEnabled;
-    if (_isEnabled === true) {
-      window.addEventListener('click', getTarget, { capture: true });
-    } else {
-      window.removeEventListener('click', getTarget, { capture: true });
+
+  function plotPath(P2) {
+    
+    const P0 = meshToMove.position;
+    const rise = P2.z - P0.z;
+    const run = P2.x - P0.x;
+
+
+    const angleBetween = Math.abs(Math.atan(rise/run));
+    const perp = Math.abs(angleBetween + Math.PI/2);
+    const length = Math.sqrt(Math.pow(rise, 2) + Math.pow(run,2)) / 3;
+    const P0_P2_midpoint = {
+      x: (P0.x + P2.x) / 2,
+      y: 0,
+      z: (P0.z + P2.z) / 2
     }
-  }
+    const moveXDirection = P0.x >= P2.x ? 1 : -1;
+    const moveYDirection = P0.z >= P2.z ? 1 : -1;
 
+    console.log('angleBetween:', angleBetween * 180/Math.PI)
+    console.log('perp', perp * 180/Math.PI)
+    const P1 = new THREE.Vector3(
+      P0_P2_midpoint.x  + Math.cos(perp) * length * moveXDirection, 
+      0, 
+      P0_P2_midpoint.z + Math.sin(perp) * length * moveYDirection
+      );
+    
 
-  function getTarget (event) {
-    event.preventDefault();
-    // calculate pointer position in normalized device coordinates
-	  // (-1 to +1) for both components
-    _pointer.x = ( event.clientX / window.innerWidth ) * 2 - 1;
-    _pointer.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
-    // update the picking ray with the camera and pointer position
-	  _raycaster.setFromCamera( _pointer, camera );
-    // calculate objects intersecting the picking ray
-	  const _intersects = _raycaster.intersectObjects( scene.children, false );
-    // reset _intersected flag
-    _intersected = null;
-    if (_intersects.length === 0) return;
-    for ( let i = 0; i < _intersects.length; i ++ ) {
-      if (_intersects[i].object.name === meshToIntersect.name) {
-        _intersected = _intersects[i];
-        break;
-      }
-    }
-    if (_intersected !== null) {
-      meshTargetMarker.position.x = _intersected.point.x;
-      meshTargetMarker.position.z = _intersected.point.z;
+    // const pathPoints = [
+    //   { color: '#ff0000', position: P0 }, 
+    // {color: '#0000ff', position: P1}, 
+    // {color: '#00ff00', position: P2}];
+// console.log('pathMarkers', pathMarkers)
+    pathMarkers.forEach(item => item.removeFromParent());
+    // get curve points
+    // pathPoints.forEach(item => {
+    //   const pathMarker = TargetMarker(item);
+    //   pathMarkers.push(pathMarker);
+    //   scene.add(pathMarker);
+    // });
+
+    const curve = new THREE.CatmullRomCurve3( [P0, P1, P2] );
+    for (let idx = 0; idx <= 1; idx += .1) {
+      const position = curve.getPoint(idx);
+      const pathMarker = TargetMarker({ color: '#ff00ff', position });
+      pathMarkers.push(pathMarker);
+      scene.add(pathMarker)
     }
   }
 
   return {
-    setEnabled
+    setEnabled: clickToMeshPoint.setEnabled
   }
 }

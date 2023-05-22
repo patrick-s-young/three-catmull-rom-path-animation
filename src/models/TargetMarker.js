@@ -1,11 +1,9 @@
 import * as THREE from 'three';
 
-export function TargetMarker() {
-  const material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+export function TargetMarker({ color, position }) {
+  const material = new THREE.MeshBasicMaterial({ color });
   const geometry = new THREE.SphereGeometry(.1);
   const mesh = new THREE.Mesh( geometry, material );
-
-  return {
-    get mesh() { return mesh }
-  }
+  mesh.position.set(...position);
+  return mesh;
 }
