@@ -1,7 +1,7 @@
 # three-catmull-rom-path-animation
 Three.js demo using a Catmull-Rom path to translate a treadmill animation to a given target.
 
-![catmull-rom-path-target](https://github.com/patrick-s-young/three-catmull-rom-path-animation/assets/42591798/965e8c2e-1210-4938-91ff-05d1a3436296)
+![catmull-rom-plot-path](https://github.com/patrick-s-young/three-catmull-rom-path-animation/assets/42591798/64aca542-6f4f-4596-aa58-5656ec7d444f)
 
 ## Authors
 
