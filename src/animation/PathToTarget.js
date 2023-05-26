@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import { ClickToMeshPoint } from '../listeners/ClickMeshPoint';
 // models
 import { TargetMarker } from '../models/TargetMarker';
-
+import { Arrow } from '../models/Arrow';
 
 //////////
 // BEGIN
@@ -15,6 +15,7 @@ export const PathToTarget = ({
   camera
 }) => {
   let pathMarkers = [];
+
   const clickToMeshPoint = ClickToMeshPoint({
     mesh: meshToIntersect,
     scene,
@@ -23,53 +24,85 @@ export const PathToTarget = ({
   });
 
 
-  function plotPath(P2) {
-    
-    const P0 = meshToMove.position;
-    const rise = P2.z - P0.z;
-    const run = P2.x - P0.x;
-
-
+  const anchorPoint = (_P0, _P2) => {
+    const rise = _P2.z - _P0.z;
+    const run = _P2.x - _P0.x;
     const angleBetween = Math.abs(Math.atan(rise/run));
     const perp = Math.abs(angleBetween + Math.PI/2);
     const length = Math.sqrt(Math.pow(rise, 2) + Math.pow(run,2)) / 3;
     const P0_P2_midpoint = {
-      x: (P0.x + P2.x) / 2,
+      x: (_P0.x + _P2.x) / 2,
       y: 0,
-      z: (P0.z + P2.z) / 2
+      z: (_P0.z + _P2.z) / 2
     }
-    const moveXDirection = P0.x >= P2.x ? 1 : -1;
-    const moveYDirection = P0.z >= P2.z ? 1 : -1;
-
-    console.log('angleBetween:', angleBetween * 180/Math.PI)
-    console.log('perp', perp * 180/Math.PI)
-    const P1 = new THREE.Vector3(
+     const moveXDirection = _P0.x < _P2.x ? 1 : -1;
+     const moveYDirection = _P0.z < _P2.z ? 1 : -1;
+    return new THREE.Vector3(
       P0_P2_midpoint.x  + Math.cos(perp) * length * moveXDirection, 
       0, 
       P0_P2_midpoint.z + Math.sin(perp) * length * moveYDirection
       );
-    
+  }
 
-    // const pathPoints = [
-    //   { color: '#ff0000', position: P0 }, 
-    // {color: '#0000ff', position: P1}, 
-    // {color: '#00ff00', position: P2}];
-// console.log('pathMarkers', pathMarkers)
+
+  function plotPath(P2) {
+    const P0 = meshToMove.position;
+    const P1 = anchorPoint(P0, P2);
+    // Clear previous markers
     pathMarkers.forEach(item => item.removeFromParent());
-    // get curve points
-    // pathPoints.forEach(item => {
-    //   const pathMarker = TargetMarker(item);
-    //   pathMarkers.push(pathMarker);
-    //   scene.add(pathMarker);
-    // });
+    // Display P1 anchor position
+    const marker = new THREE.Group();
+    const P1_marker = TargetMarker({ color: '#ffffff' });
+    marker.add(P1_marker.mesh)
+    marker.position.set(P1.x, P1.y, P1.z);
+    scene.add(marker)
+    pathMarkers.push(marker);
 
-    const curve = new THREE.CatmullRomCurve3( [P0, P1, P2] );
-    for (let idx = 0; idx <= 1; idx += .1) {
-      const position = curve.getPoint(idx);
-      const pathMarker = TargetMarker({ color: '#ff00ff', position });
-      pathMarkers.push(pathMarker);
-      scene.add(pathMarker)
+    for (let idx = 0; idx <= 1; idx += .2) {
+      const { position } = getBezierPoint(P0, P1, P2, idx);
+      const { yRotation } = getBezierSlope(P0, P1, P2, idx);
+      const marker = new THREE.Group();
+      const ball = TargetMarker({ color: '#ff00ff' });
+      const arrow = Arrow();
+      marker.add(ball.mesh);
+      marker.add(arrow.mesh);
+      marker.position.set(position.x, 0, position.z);
+
+      marker.rotateY(Math.abs(yRotation));
+      console.log('marker.rotation.y', marker.rotation.y * 180/Math.PI)
+      scene.add(marker);
+      pathMarkers.push(marker);
     }
+  }
+
+
+  function getBezierPoint (P0, P1, P2, t) {
+    const _P0 = P0.clone();
+    const _P1 = P1.clone();
+    const _P2 = P2.clone();
+    const result = new THREE.Vector3(0, 0, 0);
+    const tt = t * t;
+    const tFromOne = 1 - t;
+    _P0.multiplyScalar(tFromOne * tFromOne);
+    _P1.multiplyScalar(2 * t * tFromOne);
+    _P2.multiplyScalar(tt);
+    result.addVectors(_P0, _P1);
+    result.add(_P2);
+    return { position: result };
+  }
+
+  function getBezierSlope (P0, P1, P2, t) {
+    const _P0 = P0.clone();
+    const _P1 = P1.clone();
+    const _P2 = P2.clone();
+    const result = new THREE.Vector3(0, 0, 0);
+    _P0.multiplyScalar(-2 + 2 * t);
+    _P1.multiplyScalar(2 - 4 * t);
+    _P2.multiplyScalar( 2 * t);
+    result.addVectors(_P0, _P1);
+    result.add(_P2);
+    console.log(`result.z: ${result.z} result.x: ${result.x}`)
+    return { yRotation: Math.atan(result.z/result.x) - Math.PI/2 };
   }
 
   return {

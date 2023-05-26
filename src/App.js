@@ -7,6 +7,7 @@ import { Lights } from './lights/Lights';
 // Models
 import { AnimatedModel } from './models/AnimatedModel';
 import { Grid } from './models/Grid';
+import { TargetMarker } from './models/TargetMarker';
 // Animation
 import { PathToTarget } from './animation/PathToTarget';
 // Renderer
@@ -27,16 +28,18 @@ export const App = () => {
   const camera = Camera();
   const lights = Lights();
   scene.add(lights.getLights());
-  // GLTF
-  const cat = AnimatedModel(CONFIGS.CHARACTER, CONFIGS.ANIMATION, onAnimatedModelInit);
-  scene.add(cat.mesh);
-  // MESH
+  // MODALS
+  //const cat = AnimatedModel(CONFIGS.CHARACTER, CONFIGS.ANIMATION, onAnimatedModelInit);
+  //scene.add(cat.mesh);
   const floor = Grid();
   scene.add(floor.mesh);
+  const centerPoint = TargetMarker({ color: '#ff0000' });
+  centerPoint.mesh.position.set(0, 0, 0);
+  scene.add(centerPoint.mesh);
   // PATH TO TARGET
   const pathToTarget = PathToTarget({
     meshToIntersect: floor.mesh,
-    meshToMove: cat.mesh,
+    meshToMove: centerPoint.mesh,
     scene: scene.self,
     camera: camera.self
   });
@@ -51,14 +54,15 @@ export const App = () => {
 
 
 
-  function onAnimatedModelInit() {
+
+  //function onAnimatedModelInit() {
     renderer.setAnimationLoop(animationLoopCallback);
-  }
+  //}
 
   // RENDER LOOP
   function animationLoopCallback(timestamp) {
     const dt = clock.getDelta();
-    cat.update(dt);
+    //cat.update(dt);
     renderer.render(scene.self, camera.self);
   }
 
